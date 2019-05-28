@@ -1,0 +1,27 @@
+- hosts: verify.dhis2.org
+ 
+  tasks:
+    - name: Check timestamp of running war
+      stat:
+        path: 
+      register: running_war_stats
+
+    - name: Check timestamp of latest war
+      stat:
+        path: 
+      register: latest_war_stats
+
+    - name: Update to newer version
+      include_role:
+        name: dhis2.dhis2
+        tasks_from: deploy_war.yml
+
+      vars: 
+        instance:
+          name: "{{ instance_name }}"
+          state: 'present'
+          war_file: "{{ single_instance.value.war_file}}"
+          db_name: "{{ single_instance.value.db_name }}"
+          db_demo: "{{ single_instance.value.db_demo }}"
+          tomcat_port: "{{ single_instance.value.tomcat_port }}"
+      when: running_war_stats.stat.mtime != latest_war_stats.stat.mtime
